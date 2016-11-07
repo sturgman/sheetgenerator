@@ -193,20 +193,70 @@ renderListBonds lst =
 
 
 -- I mirrored the list rendering function to an svg version.
-renderSvg lst =
+renderSvg model =
     let
+        atomlist = model.listatoms
+
+        toPercent value =
+            toString value ++ "%"
+        
         renderCircle atm =
-            Svg.circle [ Svga.cx ((toString atm.x) ++ "%")
-                       , Svga.cy ((toString atm.y) ++ "%")
+            Svg.circle [ Svga.cx (toPercent atm.x)
+                       , Svga.cy (toPercent atm.y) 
                        , Svga.r "0.25%"] []
-    {-                
-        renderBond bnd lst=
-            Svg.line [ Svga.x1 -}
+                    
+        renderBond atom =
+            if (atomRegular atom model) then
+                [
+                 (Svg.line [ Svga.x1 (toPercent atom.x) 
+                           , Svga.y1 (toPercent atom.y)
+                           , Svga.x2 (toPercent (atom.x + 1))
+                           , Svga.y2 (toPercent (atom.y))
+                           , Svga.strokeWidth "2"
+                           , Svga.stroke "black"
+                           ] [])
+                     
+                ,(Svg.line [ Svga.x1 (toPercent atom.x)
+                           , Svga.y1 (toPercent atom.y)
+                           , Svga.x2 (toPercent (atom.x))
+                           , Svga.y2 (toPercent (atom.y + 1))
+                           , Svga.strokeWidth "2"
+                           , Svga.stroke "black"
+                           ] [])
+                ]
+
+                    
+            else if (atomFinalColumn atom model) then
+                     [
+                      (Svg.line [ Svga.x1 (toPercent atom.x)
+                                , Svga.y1 (toPercent atom.y)
+                                , Svga.x2 (toPercent (atom.x))
+                                , Svga.y2 (toPercent (atom.y + 1))
+                                , Svga.strokeWidth "2"
+                                , Svga.stroke "black"
+                                ] [])
+                     ]
+                
+                 else if (atomFinalRow atom model) then
+                     [
+                      (Svg.line [ Svga.x1 (toPercent atom.x)
+                                , Svga.y1 (toPercent atom.y)
+                                , Svga.x2 (toPercent (atom.x + 1))
+                                , Svga.y2 (toPercent (atom.y))
+                                , Svga.strokeWidth "2"
+                                , Svga.stroke "black"
+                                ] [])
+                     ]
+
+
+            else 
+                []
+    
     in
         Svg.svg [ Svga.width "100%"
                 , Svga.height "100%"
                 , Svga.viewBox "0 0 1000 1000"
-                ] (List.map renderCircle lst)
+                ] (List.append (List.map renderCircle atomlist) (List.concat (List.map renderBond atomlist)))
 
             
 view : Model -> Html Msg
@@ -222,7 +272,7 @@ view model =
                                        "ready"
                                    else
                                        "too big, disabled for now."))]
-        , div [] [renderSvg model.listatoms]
+        , div [] [renderSvg model]
         , div [] [renderListBonds model.listbonds]
         , div [] [renderListAtoms model.listatoms]
 
