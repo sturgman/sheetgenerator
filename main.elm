@@ -16,21 +16,23 @@ main =
 
 -- Model
 
-type alias Model =
+type alias Model a =
     { numxatoms : Int
     , numyatoms : Int
 -- The reason I include these here instead of just renering them is that eventually I would like my user to export a file based on these lists.
     , listatoms : List Atom
     , listbonds : List Bond
+    , image : Svg.Svg a
     , valid : Bool
     }
 
-model : Model
+model : Model a
 model =
     { numxatoms = 1
     , numyatoms = 1
     , listatoms = []
     , listbonds = []
+    , image = Svg.svg [] []
     , valid = True
     } 
 
@@ -57,7 +59,7 @@ type Msg
     | Generate
 
 
-update : Msg -> Model -> Model
+update : Msg -> Model a -> Model a
 update msg model =
     case msg of
         -- I am converting strings to ints here...
@@ -94,14 +96,15 @@ update msg model =
             else model
 
                 
-makeSheet : Model -> Model
+makeSheet : Model a -> Model a
 makeSheet model =
     model
         |> makeAtoms
         |> makeBonds
+        |> renderSvg
 
 
-makeAtoms : Model -> Model
+makeAtoms : Model a -> Model a
 makeAtoms model =
     let
         x =
@@ -124,7 +127,7 @@ makeAtoms model =
         {model | listatoms= List.indexedMap makeAtomT listcoords}
 
 
-makeBonds : Model -> Model
+makeBonds : Model a -> Model a
 makeBonds model =
     let
         makeBond : Int -> Atom -> List Bond
@@ -155,7 +158,7 @@ makebondright id =
     ]
 
 
-makebonddown : Int -> Model -> List Bond
+makebonddown : Int -> Model a -> List Bond
 makebonddown id model =
     [
      { btype = 1
@@ -164,15 +167,15 @@ makebonddown id model =
      }
     ]
 
-atomRegular : Atom -> Model -> Bool
+atomRegular : Atom -> Model a -> Bool
 atomRegular atom model =
     if atom.x < model.numxatoms && atom.y < model.numyatoms then True else False
 
-atomFinalColumn : Atom -> Model -> Bool
+atomFinalColumn : Atom -> Model a -> Bool
 atomFinalColumn atom model =
     if atom.x == model.numxatoms && atom.y < model.numyatoms then True else False
 
-atomFinalRow : Atom -> Model -> Bool
+atomFinalRow : Atom -> Model a -> Bool
 atomFinalRow atom model =
     if atom.x < model.numxatoms && atom.y == model.numyatoms then True else False
 
@@ -253,13 +256,15 @@ renderSvg model =
                 []
     
     in
-        Svg.svg [ Svga.width "100%"
-                , Svga.height "100%"
-                , Svga.viewBox "0 0 1000 1000"
-                ] (List.append (List.map renderCircle atomlist) (List.concat (List.map renderBond atomlist)))
+        {model |
+             image = Svg.svg [ Svga.width "100%"
+                             , Svga.height "100%"
+                             , Svga.viewBox "0 0 1000 1000"
+                             ] (List.append (List.map renderCircle atomlist) (List.concat (List.map renderBond atomlist)))
+        }
 
-            
-view : Model -> Html Msg
+-- I dont understand this... why does the anotation have to be this?            
+view : Model Msg -> Html Msg
 view model =
     div []
         [ div [] [text "This is work in progress! A tool to write coordiantes
@@ -272,8 +277,7 @@ view model =
                                        "ready"
                                    else
                                        "too big, disabled for now."))]
-        , div [] [renderSvg model]
+        , div [] [model.image]
         , div [] [renderListBonds model.listbonds]
         , div [] [renderListAtoms model.listatoms]
-
         ]
