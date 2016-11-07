@@ -201,30 +201,35 @@ renderSvg model =
         atomlist = model.listatoms
 
         toPercent value =
-            toString value ++ "%"
+            (toString value)
         
         renderCircle atm =
             Svg.circle [ Svga.cx (toPercent atm.x)
                        , Svga.cy (toPercent atm.y) 
-                       , Svga.r "0.25%"] []
+                       , Svga.r "0.25"] []
                     
         renderBond atom =
+            let
+                swidth = "0.1"
+                bcolor = "red"
+                        
+            in 
             if (atomRegular atom model) then
                 [
                  (Svg.line [ Svga.x1 (toPercent atom.x) 
                            , Svga.y1 (toPercent atom.y)
                            , Svga.x2 (toPercent (atom.x + 1))
                            , Svga.y2 (toPercent (atom.y))
-                           , Svga.strokeWidth "2"
-                           , Svga.stroke "black"
+                           , Svga.strokeWidth swidth
+                           , Svga.stroke bcolor
                            ] [])
                      
                 ,(Svg.line [ Svga.x1 (toPercent atom.x)
                            , Svga.y1 (toPercent atom.y)
                            , Svga.x2 (toPercent (atom.x))
                            , Svga.y2 (toPercent (atom.y + 1))
-                           , Svga.strokeWidth "2"
-                           , Svga.stroke "black"
+                           , Svga.strokeWidth swidth
+                           , Svga.stroke bcolor
                            ] [])
                 ]
 
@@ -235,8 +240,8 @@ renderSvg model =
                                 , Svga.y1 (toPercent atom.y)
                                 , Svga.x2 (toPercent (atom.x))
                                 , Svga.y2 (toPercent (atom.y + 1))
-                                , Svga.strokeWidth "2"
-                                , Svga.stroke "black"
+                                , Svga.strokeWidth swidth
+                                , Svga.stroke bcolor
                                 ] [])
                      ]
                 
@@ -246,8 +251,8 @@ renderSvg model =
                                 , Svga.y1 (toPercent atom.y)
                                 , Svga.x2 (toPercent (atom.x + 1))
                                 , Svga.y2 (toPercent (atom.y))
-                                , Svga.strokeWidth "2"
-                                , Svga.stroke "black"
+                                , Svga.strokeWidth swidth
+                                , Svga.stroke bcolor
                                 ] [])
                      ]
 
@@ -257,10 +262,10 @@ renderSvg model =
     
     in
         {model |
-             image = Svg.svg [ Svga.width "100%"
-                             , Svga.height "100%"
-                             , Svga.viewBox "0 0 1000 1000"
-                             ] (List.append (List.map renderCircle atomlist) (List.concat (List.map renderBond atomlist)))
+             image = Svg.svg [ Svga.width (toString (model.numxatoms*20))
+                             , Svga.height "auto"
+                             , Svga.viewBox ("0 0 " ++ (toString model.numxatoms) ++ " " ++ (toString model.numyatoms))
+                             ] [Svg.g [Svga.transform "translate(-0.5,-0.5)"] (List.append (List.concat (List.map renderBond atomlist)) (List.map renderCircle atomlist))]
         }
 
 -- I dont understand this... why does the anotation have to be this?            
