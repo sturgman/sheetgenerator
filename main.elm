@@ -272,7 +272,7 @@ renderSvg model =
 view : Model Msg -> Html Msg
 view model =
     div []
-        [ div [] [text "This is work in progress! A tool to write coordiantes
+        [ div [] [text "This is work in progress! A tool to write coordinates
                         and bonds for a sheet. Input numbers less than 50."]
         , input [ placeholder "Number of atoms in x direction", onInput Changex ] []
         , input [ placeholder "Number of atoms in y direction", onInput Changey ] []
@@ -283,6 +283,8 @@ view model =
                                    else
                                        "too big, disabled for now."))]
         , div [] [model.image]
-        , div [] [renderListBonds model.listbonds]
+        , div [] [h2 [] [text "Atom locations"]]
         , div [] [renderListAtoms model.listatoms]
+        , div [] [h2 [] [text "Bonds between atoms"]]
+        , div [] [renderListBonds model.listbonds]
         ]
